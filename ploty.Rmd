@@ -2,12 +2,15 @@
 title: "Drug use by federal prisioners"
 author: "Arturo Garcia"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: ioslides_presentation
+output: 
+  revealjs::revealjs_presentation:
+    theme: black
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
 ##
 
 We are going to plot the Drug use by 2004 Federal prisoners, both Ever or at the time of the offense.
