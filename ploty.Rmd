@@ -1,5 +1,5 @@
 ---
-title: "ploty"
+title: "Drug use by federal prisioners"
 author: "Arturo Garcia"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: ioslides_presentation
@@ -9,19 +9,48 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+---
+We are going to plot the Drug use by 2004 Federal prisoners, both Ever or at the time of the offense.
+
+We obtain the data from here: [Survey of Inmates in State and Federal Correctional Facilities, 2004](http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/4572?q=&paging.rows=25&sortBy=10)
+
+---
 ```{r, cache=TRUE}
-download.file("http://www.foodb.ca/system/foodb_2016-11-18.csv.zip", "data.zip")
-unzip("data.zip")
-```
 
+load("04572-0003-Data.rda")
 
-```{r cars, echo = TRUE}
-summary(cars)
-```
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(gsubfn)
+library(plotly)
 
-## Slide with Plot
+dat <- da04572.0003 %>% 
+  select(DRUG_ANY:DRUG_MARIJ, DRUG_ANYTME:DRUG_MARIJTME) %>% 
+  gather(drug, use) %>% 
+  mutate(drug = gsub("DRUG_","",drug), 
+         at_the_time = ifelse(grepl("TME",drug), "", "Ever"), 
+         drug = gsub("TME", "", drug),
+         use = gsub("\\(.*\\) ","", use),
+         drug = gsubfn(".*", list(COCRK = "Cocaine/Crack",
+                           HEROPIT = "Heroin/Opiaces",
+                           HROP = "Heroin/Opiaces",
+                           MARIJ = "Marijuana/Hashish",
+                           STIM = "Stimulants",
+                           STIMU = "Stimulants",
+                           DEP = "Depressants",
+                           DEPRES = "Depressants",
+                           HALLU = "Hallucinogens",
+                           HALU = "Hallucinogens"), drug)) %>% 
+  filter(use %in% c("Yes", "No"))
 
-```{r pressure}
-plot(pressure)
+gg <- 
+  dat %>% 
+  group_by(drug, at_the_time) %>% 
+  summarize(Percentage = mean(use == "Yes")) %>% 
+  ggplot(aes(x = drug, y = Percentage, col = at_the_time)) + geom_point(size = 3) +
+  coord_flip() + xlab("Use of drug")
+
+ggplotly(gg)
 ```
 
